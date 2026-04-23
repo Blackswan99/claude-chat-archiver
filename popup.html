@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <title>Claude Chat Archiver</title>
+  <style>
+    :root {
+      --bg: #0f1115;
+      --panel: #171a21;
+      --border: #2a2f3a;
+      --text: #e6e8ee;
+      --muted: #8a93a6;
+      --accent: #d97757;
+      --accent-hover: #c56641;
+      --ok: #4ade80;
+      --err: #f87171;
+    }
+    * { box-sizing: border-box; }
+    body {
+      width: 420px;
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 13px;
+    }
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 14px; border-bottom: 1px solid var(--border);
+    }
+    h1 { font-size: 14px; margin: 0; font-weight: 600; }
+    .icon-btn {
+      background: none; border: none; color: var(--muted);
+      cursor: pointer; font-size: 16px; padding: 4px 8px;
+    }
+    .icon-btn:hover { color: var(--text); }
+    main { padding: 12px 14px; }
+    section { margin-bottom: 14px; }
+    section h2 {
+      font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em;
+      color: var(--muted); margin: 0 0 6px; font-weight: 600;
+    }
+    .list {
+      background: var(--panel); border: 1px solid var(--border); border-radius: 6px;
+      max-height: 180px; overflow-y: auto;
+    }
+    .list-empty { padding: 14px; color: var(--muted); text-align: center; font-style: italic; }
+    .chat-item {
+      display: flex; align-items: center; gap: 8px; padding: 6px 10px;
+      border-bottom: 1px solid var(--border);
+    }
+    .chat-item:last-child { border-bottom: none; }
+    .chat-item input[type="checkbox"] { flex-shrink: 0; accent-color: var(--accent); }
+    .chat-item-body { flex: 1; min-width: 0; }
+    .chat-item-title { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .chat-item-meta { font-size: 11px; color: var(--muted); }
+    .actions { display: flex; gap: 8px; }
+    button.primary {
+      flex: 1; padding: 8px 12px; background: var(--accent); color: white;
+      border: none; border-radius: 6px; font-weight: 600; cursor: pointer;
+    }
+    button.primary:hover:not(:disabled) { background: var(--accent-hover); }
+    button.primary:disabled { opacity: 0.4; cursor: not-allowed; }
+    button.secondary {
+      padding: 8px 12px; background: transparent; color: var(--text);
+      border: 1px solid var(--border); border-radius: 6px; cursor: pointer;
+    }
+    .status {
+      padding: 8px 12px; border-radius: 6px; margin-bottom: 10px;
+      background: var(--panel); border: 1px solid var(--border); font-size: 12px;
+    }
+    .status.ok { border-color: var(--ok); }
+    .status.err { border-color: var(--err); }
+    .status.hidden { display: none; }
+    .activity-item {
+      display: flex; gap: 8px; padding: 4px 10px; font-size: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .activity-item:last-child { border-bottom: none; }
+    .activity-time { color: var(--muted); margin-left: auto; font-size: 11px; }
+
+    /* Settings */
+    .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; }
+    .modal.hidden { display: none; }
+    .modal-content {
+      background: var(--panel); border: 1px solid var(--border); border-radius: 8px;
+      padding: 16px; width: 380px; max-height: 90vh; overflow-y: auto;
+    }
+    .modal-content h2 { margin: 0 0 12px; font-size: 14px; }
+    .field { margin-bottom: 10px; }
+    .field label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+    .field input[type="text"], .field input[type="password"], .field input[type="number"] {
+      width: 100%; padding: 6px 8px; background: var(--bg); color: var(--text);
+      border: 1px solid var(--border); border-radius: 4px; font-family: inherit; font-size: 12px;
+    }
+    .field-check { display: flex; align-items: center; gap: 6px; }
+    .field-check input { accent-color: var(--accent); }
+    .modal-actions { display: flex; gap: 8px; margin-top: 12px; }
+    .hint { font-size: 11px; color: var(--muted); margin-top: 4px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Claude Chat Archiver</h1>
+    <div>
+      <button class="icon-btn" id="reloadBtn" title="Chats neu laden">↻</button>
+      <button class="icon-btn" id="settingsBtn" title="Einstellungen">⚙</button>
+    </div>
+  </header>
+
+  <main>
+    <div id="status" class="status hidden"></div>
+
+    <section>
+      <h2>Chats (<span id="chatCount">0</span>)</h2>
+      <div id="chatsList" class="list">
+        <div class="list-empty">Lade…</div>
+      </div>
+    </section>
+
+    <section class="actions">
+      <button class="secondary" id="selectAllBtn">Alle</button>
+      <button class="secondary" id="clearBtn">Auswahl löschen</button>
+      <button class="primary" id="syncBtn" disabled>📤 Archivieren</button>
+    </section>
+
+    <section>
+      <h2>Aktivität</h2>
+      <div id="activity" class="list">
+        <div class="list-empty">Keine Aktivität</div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Settings Modal -->
+  <div class="modal hidden" id="settingsModal">
+    <div class="modal-content">
+      <h2>Einstellungen</h2>
+      <div class="field">
+        <label>GitHub Personal Access Token</label>
+        <input type="password" id="githubToken" placeholder="ghp_... oder github_pat_..." />
+        <div class="hint">Scope: <code>repo</code> (Contents: Read/Write reicht bei Fine-grained)</div>
+      </div>
+      <div class="field">
+        <label>Repository (owner/repo)</label>
+        <input type="text" id="repoUrl" placeholder="username/claude-chats-archive" />
+      </div>
+      <div class="field">
+        <label>Zielordner im Repo</label>
+        <input type="text" id="chatsPath" placeholder="chats" />
+      </div>
+      <div class="field">
+        <label>Max. Attachment-Größe (MB)</label>
+        <input type="number" id="maxAttachmentMB" min="1" max="100" value="10" />
+        <div class="hint">Größere Dateien werden übersprungen (GitHub-Limit: 100 MB)</div>
+      </div>
+      <div class="field field-check">
+        <input type="checkbox" id="includeAttachments" checked />
+        <label for="includeAttachments">Anhänge mit archivieren (Uploads, Artefakte, Tool-Outputs)</label>
+      </div>
+      <div class="field">
+        <label>Auto-Sync Intervall (Minuten, min. 15)</label>
+        <input type="number" id="syncInterval" min="15" value="60" />
+      </div>
+      <div class="field field-check">
+        <input type="checkbox" id="autoArchive" />
+        <label for="autoArchive">Auto-Archive aktivieren (ausgewählte Chats)</label>
+      </div>
+      <div class="modal-actions">
+        <button class="secondary" id="testBtn">Testen</button>
+        <button class="secondary" id="closeSettingsBtn">Abbrechen</button>
+        <button class="primary" id="saveSettingsBtn">Speichern</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

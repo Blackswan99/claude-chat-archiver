@@ -1,0 +1,24 @@
+# Build artifacts
+*.zip
+*.xpi
+*.crx
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*~
+
+# Node (falls Build-Tooling eingeführt wird)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Signatures (nur Release-Artefakte werden signiert, nicht das Repo)
+*.asc
+*.sig
