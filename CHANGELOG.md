@@ -4,6 +4,19 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [1.0.2] - 2026-04-24
+
+### Changed
+- Extension UUID changed to `claude-chat-archiver-addon@mozilla.local`
+  for better separation from other author projects. Previous versions
+  used a different identifier.
+
+### Note
+- Due to the UUID change, this is effectively a new extension listing on
+  Mozilla Add-ons. Users of previous versions need to uninstall the old
+  extension and install the new one — automatic updates do not cross
+  UUID boundaries.
+
 ## [1.0.1] - 2026-04-23
 
 ### Fixed
@@ -19,7 +32,7 @@ All notable changes to this project are documented here. The format is based on
   configured GitHub repository, with explicit Accept/Decline. Consent is
   required before any sync operation.
 - `data_collection_permissions` declaration in the manifest (required for
-  Firefox 140+ AMO submissions).
+  Firefox 142+ AMO submissions).
 
 ### Changed
 - Switched popup rendering from `innerHTML` template strings to DOM API

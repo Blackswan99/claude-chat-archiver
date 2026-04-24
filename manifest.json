@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Claude Chat Archiver",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Archiviert deine Claude-Chats als Markdown auf GitHub — per interner Claude-API, kein DOM-Scraping.",
   "permissions": [
     "storage",
@@ -21,7 +21,7 @@
   },
   "browser_specific_settings": {
     "gecko": {
-      "id": "claude-chat-archiver@areafx.local",
+      "id": "claude-chat-archiver-addon@mozilla.local",
       "strict_min_version": "142.0",
       "data_collection_permissions": {
         "required": ["none"]
