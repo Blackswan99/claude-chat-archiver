@@ -1,39 +1,39 @@
 # Claude Chat Archiver
 
-Browser extension (Firefox, Chrome) that automatically archives your chats from [claude.ai](https://claude.ai) as Markdown into a GitHub repository — including all user uploads, Claude artifacts, and tool outputs.
+Browser-Extension (Firefox, Chrome) zum automatischen Archivieren deiner Chats von [claude.ai](https://claude.ai) als Markdown in ein GitHub-Repository — inklusive aller User-Uploads, Claude-Artefakte und Tool-Outputs.
 
-> **Independent tool.** Not built by Anthropic or GitHub, and not affiliated with either of them.
+> **Unabhängiges Tool.** Nicht von Anthropic oder GitHub, nicht affiliiert mit einem der beiden.
 
-## Why?
+## Warum?
 
-Claude.ai does not offer an official export of all chats in an open, version-controllable format. Anyone doing longer conversations, research, coding work, or journal-style usage will want those contents available outside the platform — searchable, diffable, and independent of account or platform changes.
+Claude.ai bietet keinen offiziellen Export aller Chats in einem offenen, versionskontrollierbaren Format. Wer längere Gespräche, Recherchen, Code-Arbeit oder tagebuchartige Nutzung betreibt, möchte diese Inhalte auch außerhalb der Plattform haben — durchsuchbar, diffbar, unabhängig von Account- oder Plattform-Änderungen.
 
-This extension solves the problem **without DOM scraping**: it uses the same JSON API that claude.ai itself uses in the frontend, and uploads chats in a structured way to a GitHub repo. Incremental, idempotent, deterministic.
+Diese Extension löst das Problem **ohne DOM-Scraping**: Sie nutzt dieselbe JSON-API, die claude.ai selbst im Frontend verwendet, und lädt Chats strukturiert in ein GitHub-Repo. Inkrementell, idempotent, deterministisch.
 
 ## Features
 
-- **Complete chat histories** as Markdown with YAML frontmatter (UUID, timestamps, model)
-- **Three kinds of attachments** are archived:
-  - User uploads (PDFs, images, spreadsheets, code files)
-  - Claude-generated artifacts (code, HTML, SVG, Mermaid)
-  - Tool outputs from code-execution sessions
-- **Incremental sync** — only changed chats are re-uploaded
-- **One folder per chat** with a clickable attachment index
-- **Optional auto-sync** in the background (min. 15 minutes)
-- **No external dependencies** — pure vanilla JS, no npm, no runtime bundler
+- **Vollständige Chat-Verläufe** als Markdown mit YAML-Frontmatter (UUID, Timestamps, Modell)
+- **Drei Arten von Anhängen** werden archiviert:
+  - User-Uploads (PDFs, Bilder, Spreadsheets, Code-Dateien)
+  - Von Claude erzeugte Artefakte (Code, HTML, SVG, Mermaid)
+  - Tool-Outputs aus Code-Execution-Sessions
+- **Inkrementeller Sync** — nur geänderte Chats werden neu hochgeladen
+- **Ein Ordner pro Chat** mit klickbarem Attachment-Index
+- **Optionaler Auto-Sync** im Hintergrund (min. 15 Minuten)
+- **Keine externen Dependencies** — reines Vanilla-JS, kein npm, kein Bundler zur Laufzeit
 
-## Archive folder structure
+## Ordnerstruktur im Archiv
 
 ```
-your-archive-repo/
+dein-archiv-repo/
 └── chats/
-    ├── 2026-04-22_project-analysis_a3f7b2c1/
+    ├── 2026-04-22_projekt-analyse_a3f7b2c1/
     │   ├── chat.md
     │   └── attachments/
-    │       ├── data.xlsx
-    │       ├── artifact-01-script.py
+    │       ├── daten.xlsx
+    │       ├── artifact-01-skript.py
     │       └── tool-output-01.png
-    └── 2026-04-21_research_f8e9d4a2/
+    └── 2026-04-21_recherche_f8e9d4a2/
         └── chat.md
 ```
 
@@ -41,190 +41,190 @@ your-archive-repo/
 
 ## Installation
 
-### Requirements
+### Voraussetzungen
 
-- **Firefox** (version 115 or newer) or a Chromium-based browser (Chrome, Edge, Brave, Opera)
-- Active [claude.ai](https://claude.ai) account, logged in in your browser
-- GitHub account with a repository as the archive target
-- GitHub Personal Access Token with write access to that repo
+- **Firefox** (ab Version 142) oder Chromium-Browser (Chrome, Edge, Brave, Opera)
+- Aktives [claude.ai](https://claude.ai)-Konto, im Browser eingeloggt
+- GitHub-Konto mit einem Repository als Archiv-Ziel
+- GitHub Personal Access Token mit Schreibrechten auf dieses Repo
 
-### 1. Get the extension files
+### 1. Extension-Dateien besorgen
 
-**Option A — ZIP download** (easiest):
-1. On the repo page: **"Code" → "Download ZIP"**
-2. Extract the ZIP
+**Option A — ZIP-Download** (einfach):
+1. Auf der Repo-Seite oben: **"Code" → "Download ZIP"**
+2. ZIP entpacken
 
-**Option B — Git clone**:
+**Option B — Git-Clone**:
 ```bash
 git clone https://github.com/Blackswan99/claude-chat-archiver.git
 cd claude-chat-archiver
 ```
 
-### 2a. Install in Firefox (temporary)
+### 2a. In Firefox installieren (temporär)
 
-1. Enter `about:debugging#/runtime/this-firefox` in the address bar
-2. Click **"Load Temporary Add-on..."**
-3. Select the `manifest.json` from the extracted folder
+1. `about:debugging#/runtime/this-firefox` in die Adressleiste
+2. **"Temporäres Add-on laden..."** klicken
+3. Die `manifest.json` aus dem entpackten Ordner auswählen
 
-> ⚠️ The extension is only loaded until Firefox is restarted. For permanent installation see the section [Firefox permanent](#firefox-permanent).
+> ⚠️ Die Extension bleibt nur bis zum Firefox-Neustart geladen. Für dauerhafte Installation siehe Abschnitt [Firefox dauerhaft](#firefox-dauerhaft).
 
-### 2b. Install in Chrome/Edge/Brave
+### 2b. In Chrome/Edge/Brave installieren
 
-1. Open `chrome://extensions`
-2. Enable **Developer mode** (top right)
-3. Click **"Load unpacked"**
-4. Select the extracted folder
+1. `chrome://extensions` öffnen
+2. **Entwicklermodus** oben rechts aktivieren
+3. **"Entpackte Erweiterung laden"** klicken
+4. Den entpackten Ordner auswählen
 
-### 3. Create a GitHub Personal Access Token
+### 3. GitHub Personal Access Token erstellen
 
-**Fine-grained token** (recommended, more secure):
-1. Open [github.com/settings/personal-access-tokens/new](https://github.com/settings/personal-access-tokens/new)
-2. **Repository access:** Select only the archive repo (not "All repositories"!)
+**Fine-grained Token** (empfohlen, sicherer):
+1. [github.com/settings/personal-access-tokens/new](https://github.com/settings/personal-access-tokens/new) öffnen
+2. **Repository access:** Nur das Archiv-Repo auswählen (nicht "All repositories"!)
 3. **Permissions → Repository permissions → Contents: Read and write**
-4. Leave all other permissions on "No access"
-5. Set an expiration — e.g. 1 year
+4. Alle anderen Permissions auf "No access" lassen
+5. Ablaufzeit setzen — z. B. 1 Jahr
 
-**Classic token** (simpler, broader):
+**Classic Token** (einfacher, breiter):
 1. [github.com/settings/tokens/new](https://github.com/settings/tokens/new)
 2. Scope: `repo`
 
-> Copy the token right away — GitHub only shows it once.
+> Token sofort kopieren — GitHub zeigt ihn nur einmal an.
 
-### 4. Extension settings
+### 4. Settings in der Extension
 
-1. Click the extension icon → ⚙ (gear)
-2. Fill in:
-   - **GitHub Token** (the one you just created)
-   - **Repository** in the form `username/repo`
-   - Optional: target folder (default: `chats`)
-3. Click **"Test"** — should return a green OK with branch info
-4. Click **"Save"**
+1. Extension-Icon anklicken → ⚙ (Zahnrad)
+2. Eintragen:
+   - **GitHub Token** (der eben erstellte)
+   - **Repository** im Format `username/repo`
+   - Optional: Zielordner (Default: `chats`)
+3. **"Testen"** klicken — sollte ein grünes OK mit Branch-Info zurückgeben
+4. **"Speichern"**
 
-If your target repo is empty, the extension will automatically create an initial commit on the first sync.
+Falls dein Zielrepo leer ist, legt die Extension beim ersten Sync automatisch einen Initial-Commit an.
 
-### 5. Archive
+### 5. Archivieren
 
-1. Be logged in to [claude.ai](https://claude.ai) (regular browser login)
-2. Open the extension icon — the chat list loads automatically
-3. Tick the chats you want
-4. Click **"Archive"**
+1. Bei [claude.ai](https://claude.ai) eingeloggt sein (normaler Browser-Login)
+2. Extension-Icon öffnen — die Chat-Liste lädt automatisch
+3. Gewünschte Chats anhaken
+4. **"Archivieren"** klicken
 
-Progress and errors appear in the activity log at the bottom.
-
----
-
-## Firefox permanent
-
-The temporary add-on disappears every time Firefox restarts. For permanent use:
-
-1. Create an account at [addons.mozilla.org/developers](https://addons.mozilla.org/developers/)
-2. **"Submit a New Add-on"** → upload the ZIP → choose **"On your own"** (self-distribution)
-3. Mozilla signs the extension automatically (minutes to a few hours)
-4. Drag and drop the signed `.xpi` into Firefox → stays installed permanently
-
-This works **without store publication** and without review. The signed version is then only for you (or whoever you give it to), not for Mozilla users at large.
-
-For **Chrome permanent** there is unfortunately no equivalent path — either the Chrome Web Store (5 $ fee, review) or keeping Developer mode permanently enabled.
+Fortschritt und Fehler erscheinen im Aktivitäts-Log am unteren Rand.
 
 ---
 
-## Settings in detail
+## Firefox dauerhaft
 
-| Setting | Meaning | Default |
+Das temporäre Add-on verschwindet bei jedem Firefox-Neustart. Für Dauerbetrieb:
+
+1. Account anlegen auf [addons.mozilla.org/developers](https://addons.mozilla.org/developers/)
+2. **"Submit a New Add-on"** → ZIP hochladen → **"On your own"** (Self-Distribution) wählen
+3. Mozilla signiert die Extension automatisch (Minuten bis wenige Stunden)
+4. Signierte `.xpi` per Drag & Drop in Firefox → bleibt permanent installiert
+
+Das geht **ohne Veröffentlichung im Store**, ohne Review. Die signierte Version ist dann nur für dich (oder wen du sie gibst), nicht für Mozilla-Nutzer allgemein.
+
+Für **Chrome dauerhaft** gibt es leider keinen analogen Weg — entweder Chrome Web Store (5 $ Gebühr, Review) oder Entwicklermodus dauerhaft aktiv.
+
+---
+
+## Einstellungen im Detail
+
+| Setting | Bedeutung | Default |
 |---|---|---|
-| GitHub Token | Auth for the GitHub API | — |
-| Repository | Target repo in the form `owner/repo` | — |
-| Target folder | Subfolder in the repo for chats | `chats` |
-| Auto-sync interval | Minutes between background syncs | 60 |
-| Auto-archive | Enable automatic syncing | off |
-| Max. attachment size | MB, larger files are skipped | 10 |
-| Archive attachments | Download uploads, artifacts, tool outputs | on |
+| GitHub Token | Auth für die GitHub-API | — |
+| Repository | Ziel-Repo im Format `owner/repo` | — |
+| Zielordner | Unterordner im Repo für Chats | `chats` |
+| Auto-Sync Intervall | Minuten zwischen Hintergrund-Syncs | 60 |
+| Auto-Archive | Automatischer Sync aktivieren | aus |
+| Max. Attachment-Größe | MB, größere Dateien werden übersprungen | 10 |
+| Anhänge mit archivieren | Uploads, Artefakte, Tool-Outputs herunterladen | an |
 
 ---
 
-## Release verification
+## Release-Verifikation
 
-This extension has access to your Claude session and your GitHub token. You should be able to verify that the code really comes from the original author and has not been tampered with.
+Diese Extension hat Zugriff auf deine Claude-Session und dein GitHub-Token. Du solltest verifizieren können, dass der Code wirklich vom ursprünglichen Autor stammt und nicht manipuliert wurde.
 
-### As a user: verify authenticity
+### Als Nutzer: Authentizität prüfen
 
-**Simplest check — GitHub web UI:** every commit should show a green **"Verified"** badge next to the author. If the badge is missing, the commit was not signed.
+**Einfachster Check — GitHub-Web-UI:** Jeder Commit sollte ein grünes **"Verified"**-Badge neben dem Autor zeigen. Fehlt das Badge, wurde der Commit nicht signiert.
 
-**Precise check — local GPG verification:**
+**Präziser Check — lokale GPG-Verifikation:**
 ```bash
-# Import the maintainer's public key
+# Den Public Key des Maintainers importieren
 gpg --keyserver keyserver.ubuntu.com --recv-keys <MAINTAINER-KEY-ID>
 
-# Check commits
+# Commits prüfen
 git log --show-signature | head -30
 ```
 
-**Verify a release ZIP:** every release ships with a `.asc` signature:
+**Release-ZIP verifizieren:** Für jedes Release wird eine `.asc`-Signatur mitveröffentlicht:
 ```bash
-gpg --verify claude-chat-archiver-v1.0.0.zip.asc claude-chat-archiver-v1.0.0.zip
+gpg --verify claude-chat-archiver-v2.1.2.zip.asc claude-chat-archiver-v2.1.2.zip
 ```
-The output must contain `Good signature from "Blackswan99..."`, and the key fingerprint must match the official one:
+Der Output muss `Good signature from "Blackswan99..."` enthalten, und der Key-Fingerprint muss mit dem offiziellen übereinstimmen:
 
-**Official key fingerprint:**
+**Offizieller Key-Fingerprint:**
 ```
-(to be filled in after key generation)
+(Wird nach Key-Generierung hier eingetragen)
 ```
 
-> ⚠️ **Careful with forks:** a fork is legitimate, but its maintainer is someone else. Only releases from `github.com/Blackswan99/claude-chat-archiver` are signed by the original author.
+> ⚠️ **Vorsicht bei Forks:** Ein Fork ist legitim, aber dessen Maintainer ist jemand anderes. Nur Releases aus `github.com/Blackswan99/claude-chat-archiver` sind vom Original-Autor signiert.
 
 ---
 
-## License
+## Lizenz
 
-**Apache License 2.0** — see [LICENSE](LICENSE) and [NOTICE](NOTICE).
+**Apache License 2.0** — siehe [LICENSE](LICENSE) und [NOTICE](NOTICE).
 
-Short version:
-- ✅ Use, modification, redistribution — including commercial — are permitted
-- ✅ Explicit patent license protects you from patent claims
-- ⚠️ Copyright notice and LICENSE/NOTICE files must be retained in derivatives
-- ⚠️ Modifications to files must be marked as such
-- ❌ No warranty — the tool is provided "as is"
-- ❌ The author's name may not be used for promotion without permission
+Kurzfassung:
+- ✅ Nutzung, Modifikation, Weitergabe — auch kommerziell — sind erlaubt
+- ✅ Explizite Patent-Lizenz schützt dich vor Patent-Ansprüchen
+- ⚠️ Copyright-Hinweis und LICENSE/NOTICE-Dateien müssen in Derivaten enthalten bleiben
+- ⚠️ Änderungen an Dateien müssen kenntlich gemacht werden
+- ❌ Keine Gewährleistung — das Tool wird "as is" bereitgestellt
+- ❌ Der Name des Autors darf nicht ohne Zustimmung für Werbung verwendet werden
 
-For all details see the full license text.
+Für alle Details siehe den vollständigen Lizenztext.
 
 ---
 
-## Architecture
+## Architektur
 
 ```
 popup.html / popup.js  ─(sendMessage)─▶  background.bundle.js
                                               │
                                               ├─▶ claude-api.js  ─▶  claude.ai/api
                                               ├─▶ github.js      ─▶  api.github.com
-                                              ├─▶ markdown.js     (conversion + hash)
-                                              └─▶ attachments.js  (extraction + download)
+                                              ├─▶ markdown.js     (Konvertierung + Hash)
+                                              └─▶ attachments.js  (Extraktion + Download)
 ```
 
-The background worker holds the central logic. The popup is pure UI and delegates all operations via `chrome.runtime.sendMessage`. API calls go directly from the worker with `credentials: 'include'`, so the Claude session cookie is automatically attached.
+Der Background-Worker ist die zentrale Logik. Das Popup ist reines UI und delegiert alle Operationen via `chrome.runtime.sendMessage`. API-Calls laufen direkt aus dem Worker mit `credentials: 'include'`, wodurch das Claude-Session-Cookie automatisch mitgesendet wird.
 
-## Rebuild the bundle
+## Bundle neu bauen
 
-After changes to any source module:
+Nach Änderungen an einem Source-Modul:
 ```bash
 ./build-bundle.sh
 ```
-Creates `background.bundle.js` from all module files. The build script is pure Bash + sed, no Node dependencies.
+Erzeugt `background.bundle.js` aus allen Modul-Dateien. Das Bundle-Script ist reines Bash + sed, keine Node-Dependencies.
 
 ---
 
 ## Caveats
 
-The Claude.ai API is **not officially documented**. Anthropic can change it at any time. In practice it has been stable for a while, but there are no guarantees. The relevant calls are concentrated in `claude-api.js` and are easy to patch if necessary.
+Die Claude.ai-API ist **nicht offiziell dokumentiert**. Anthropic kann sie jederzeit ändern. In der Praxis ist sie seit längerer Zeit stabil, aber Garantien gibt es keine. Die relevanten Aufrufe sind in `claude-api.js` konzentriert und einfach zu patchen, falls nötig.
 
-**Tool outputs** from code-execution sessions (generated files like `.docx`, `.xlsx`) cannot always be fully archived, since the file URLs sometimes have a short lifetime. In that case the attachment index shows a note `(reference only, no content available)`.
+**Tool-Outputs** aus Code-Execution-Sessions (generierte Files wie `.docx`, `.xlsx`) können nicht immer vollständig archiviert werden, da die Datei-URLs teilweise kurze Lebensdauer haben. In dem Fall erscheint im Attachment-Index ein Vermerk `(nur Referenz, kein Inhalt verfügbar)`.
 
-The tool accesses the Claude API with **your** session credentials — it operates within what you as a logged-in user are allowed to do anyway. No privileged operation, no Anthropic billing-relevant action.
+Das Tool greift mit **deinen** Session-Credentials auf die Claude-API zu — es läuft im Rahmen dessen, was du als eingeloggter Nutzer ohnehin darfst. Keine privilegierte Operation, keine Anthropic-Billing-relevante Aktion.
 
 ---
 
-## Contributing
+## Mitwirken
 
-Pull requests are welcome. For larger changes please open an issue first.
+Pull Requests sind willkommen. Vor größeren Änderungen bitte erst ein Issue aufmachen.
 
-**Code style:** no build tooling dependencies other than `bash` and `sed`. No TypeScript, no Webpack, no npm. Plain ES2022 modules that can be concatenated into a single file by hand.
+**Code-Stil:** keine Build-Tooling-Abhängigkeiten außer `bash` und `sed`. Kein TypeScript, kein Webpack, kein npm. Reine ES2022-Module, die sich händisch zu einer Datei verketten lassen.
