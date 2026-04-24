@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Claude Chat Archiver",
-  "version": "1.0.2",
-  "description": "Archiviert deine Claude-Chats als Markdown auf GitHub — per interner Claude-API, kein DOM-Scraping.",
+  "version": "1.0.4",
+  "description": "Archive your Claude.ai chats as Markdown to GitHub — uses the internal Claude API, no DOM scraping.",
   "permissions": [
     "storage",
     "alarms",
@@ -18,6 +18,10 @@
   "action": {
     "default_popup": "popup.html",
     "default_title": "Claude Chat Archiver"
+  },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
   },
   "browser_specific_settings": {
     "gecko": {

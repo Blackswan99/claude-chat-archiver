@@ -71,7 +71,7 @@ function formatAttachments(msg) {
 function renderAttachmentIndex(attachments, skipped) {
   if (!attachments || attachments.length === 0) {
     if (skipped && skipped.length > 0) {
-      return `\n> ⚠️ ${skipped.length} Anhänge konnten nicht archiviert werden.\n`;
+      return `\n> ⚠️ ${skipped.length} attachments could not be archived.\n`;
     }
     return '';
   }
@@ -81,10 +81,10 @@ function renderAttachmentIndex(attachments, skipped) {
     (bySource[a.source] || bySource.user_upload).push(a);
   }
 
-  const lines = ['\n## 📎 Anhänge\n'];
+  const lines = ['\n## 📎 Attachments\n'];
 
   if (bySource.user_upload.length + bySource.user_upload_text.length > 0) {
-    lines.push('**User-Uploads:**');
+    lines.push('**User uploads:**');
     for (const a of [...bySource.user_upload, ...bySource.user_upload_text]) {
       lines.push(`- [\`${a.name}\`](${a.path})`);
     }
@@ -92,7 +92,7 @@ function renderAttachmentIndex(attachments, skipped) {
   }
 
   if (bySource.artifact.length > 0) {
-    lines.push('**Claude-Artefakte:**');
+    lines.push('**Claude artifacts:**');
     for (const a of bySource.artifact) {
       lines.push(`- [\`${a.name}\`](${a.path})`);
     }
@@ -100,7 +100,7 @@ function renderAttachmentIndex(attachments, skipped) {
   }
 
   if (bySource.tool_output.length > 0) {
-    lines.push('**Tool-Outputs:**');
+    lines.push('**Tool outputs:**');
     for (const a of bySource.tool_output) {
       lines.push(`- [\`${a.name}\`](${a.path})`);
     }
@@ -108,7 +108,7 @@ function renderAttachmentIndex(attachments, skipped) {
   }
 
   if (skipped && skipped.length > 0) {
-    lines.push('**Übersprungen:**');
+    lines.push('**Skipped:**');
     for (const s of skipped) {
       lines.push(`- \`${s.name}\` — ${s.reason}`);
     }

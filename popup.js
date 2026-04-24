@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-// popup.js — UI-Layer, delegiert alles an Background
+// popup.js — UI layer; delegates operations to background worker.
 
 const state = {
   chats: [],
@@ -29,8 +29,8 @@ function send(action, payload) {
   return new Promise((resolve, reject) => {
     chrome.runtime.sendMessage({ action, payload }, (res) => {
       if (chrome.runtime.lastError) return reject(new Error(chrome.runtime.lastError.message));
-      if (!res) return reject(new Error('Keine Antwort vom Background'));
-      if (!res.ok) return reject(new Error(res.error || 'Unbekannter Fehler'));
+      if (!res) return reject(new Error('No response from background worker'));
+      if (!res.ok) return reject(new Error(res.error || 'Unknown error'));
       resolve(res);
     });
   });
@@ -43,9 +43,12 @@ function showStatus(msg, kind = '') {
   el.textContent = msg;
   el.className = 'status ' + kind;
 }
-function hideStatus() { $('status').className = 'status hidden'; }
 
-// ---------- DOM-Helper ----------
+function hideStatus() {
+  $('status').className = 'status hidden';
+}
+
+// ---------- DOM helpers ----------
 
 function clearChildren(el) {
   while (el.firstChild) el.removeChild(el.firstChild);
@@ -63,21 +66,20 @@ function setEmptyState(el, text) {
   el.appendChild(makeEl('div', 'list-empty', text));
 }
 
-// ---------- Laden ----------
+// ---------- Loading ----------
 
 async function loadChats() {
-  setEmptyState($('chatsList'), 'Lade…');
+  setEmptyState($('chatsList'), 'Loading…');
   try {
     const { chats } = await send('loadChats');
     state.chats = chats;
-    // gespeicherte Auswahl restaurieren
     const { selectedChats = [] } = await chrome.storage.local.get(['selectedChats']);
     state.selected = new Set(selectedChats.filter((uuid) => chats.some((c) => c.uuid === uuid)));
     renderChats();
   } catch (e) {
     setEmptyState($('chatsList'), e.message);
-    if (e.message.includes('401') || e.message.includes('eingeloggt')) {
-      showStatus('Bitte bei claude.ai einloggen', 'err');
+    if (e.message.includes('401') || e.message.includes('logged in')) {
+      showStatus('Please log in to claude.ai first.', 'err');
     }
   }
 }
@@ -87,7 +89,7 @@ async function loadActivity() {
   const el = $('activity');
   clearChildren(el);
   if (activity.length === 0) {
-    el.appendChild(makeEl('div', 'list-empty', 'Keine Aktivität'));
+    el.appendChild(makeEl('div', 'list-empty', 'No activity yet'));
     return;
   }
   for (const a of activity) {
@@ -106,12 +108,12 @@ function renderChats() {
   const el = $('chatsList');
   clearChildren(el);
   if (state.chats.length === 0) {
-    el.appendChild(makeEl('div', 'list-empty', 'Keine Chats gefunden'));
+    el.appendChild(makeEl('div', 'list-empty', 'No chats found'));
     updateButtons();
     return;
   }
   for (const c of state.chats) {
-    const date = c.updated_at ? new Date(c.updated_at).toLocaleDateString('de-DE') : '';
+    const date = c.updated_at ? new Date(c.updated_at).toLocaleDateString() : '';
 
     const item = makeEl('div', 'chat-item');
 
@@ -139,114 +141,34 @@ function renderChats() {
 
 async function updateButtons() {
   const { githubToken } = await chrome.storage.local.get(['githubToken']);
-  $('syncBtn').disabled = state.selected.size === 0 || !githubToken;
-  $('syncBtn').textContent = `📤 Archivieren (${state.selected.size})`;
+  const btn = $('syncBtn');
+  btn.disabled = state.selected.size === 0 || !githubToken;
+  btn.textContent = state.selected.size > 0
+    ? `Archive (${state.selected.size})`
+    : 'Archive';
 }
 
-// ---------- Settings ----------
+// ---------- Settings (opens in a tab) ----------
 
-async function openSettings() {
-  const cfg = await chrome.storage.local.get([
-    'githubToken', 'repoUrl', 'chatsPath', 'syncInterval', 'autoArchive',
-    'maxAttachmentMB', 'includeAttachments',
-  ]);
-  console.log('[Archiver] openSettings — loaded from storage:', {
-    ...cfg,
-    githubToken: cfg.githubToken ? `${cfg.githubToken.slice(0, 8)}…(${cfg.githubToken.length} chars)` : '(leer)',
-    repoUrl: cfg.repoUrl || '(leer)',
-  });
-  $('githubToken').value = cfg.githubToken || '';
-  $('repoUrl').value = cfg.repoUrl || '';
-  $('chatsPath').value = cfg.chatsPath || 'chats';
-  $('syncInterval').value = cfg.syncInterval || 60;
-  $('autoArchive').checked = !!cfg.autoArchive;
-  $('maxAttachmentMB').value = cfg.maxAttachmentMB || 10;
-  $('includeAttachments').checked = cfg.includeAttachments !== false;
-  $('settingsModal').classList.remove('hidden');
-}
-
-function closeSettings() { $('settingsModal').classList.add('hidden'); }
-
-async function saveSettings() {
-  const payload = {
-    githubToken: $('githubToken').value.trim(),
-    repoUrl: $('repoUrl').value.trim(),
-    chatsPath: $('chatsPath').value.trim() || 'chats',
-    syncInterval: Math.max(15, parseInt($('syncInterval').value, 10) || 60),
-    autoArchive: $('autoArchive').checked,
-    maxAttachmentMB: Math.max(1, Math.min(100, parseInt($('maxAttachmentMB').value, 10) || 10)),
-    includeAttachments: $('includeAttachments').checked,
-  };
-  if (!payload.githubToken || !payload.repoUrl) {
-    showStatus('Token und Repo sind Pflicht', 'err');
-    return;
-  }
-
-  showStatus('Speichere…');
-  console.log('[Archiver] saveSettings payload:', {
-    ...payload,
-    githubToken: payload.githubToken ? `${payload.githubToken.slice(0, 8)}…` : '',
-  });
-
-  try {
-    // Direkt im Popup-Kontext schreiben — unabhängig vom Background-Worker
-    await chrome.storage.local.set(payload);
-    console.log('[Archiver] storage.local.set done');
-
-    // Verifizieren durch sofortiges Re-Read
-    const verify = await chrome.storage.local.get(Object.keys(payload));
-    console.log('[Archiver] verify read:', {
-      ...verify,
-      githubToken: verify.githubToken ? `${verify.githubToken.slice(0, 8)}…` : '(leer!)',
-    });
-
-    if (!verify.githubToken || verify.githubToken !== payload.githubToken) {
-      throw new Error('Verifikation fehlgeschlagen: Storage hat nicht den erwarteten Wert zurückgegeben');
-    }
-
-    // Parallel: Background informieren (Alarm rescheduling) — Fehler hier ignorieren
-    send('saveSettings', payload).catch((e) => {
-      console.warn('[Archiver] Background-Notify fehlgeschlagen (unkritisch):', e.message);
-    });
-
-    showStatus('✓ Gespeichert', 'ok');
-    setTimeout(() => {
-      closeSettings();
-      hideStatus();
-      updateButtons();
-    }, 700);
-  } catch (e) {
-    console.error('[Archiver] saveSettings error:', e);
-    showStatus('✗ ' + e.message, 'err');
+function openOptions() {
+  if (chrome.runtime.openOptionsPage) {
+    chrome.runtime.openOptionsPage();
+  } else {
+    window.open(chrome.runtime.getURL('options.html'));
   }
 }
 
-async function testSettings() {
-  const payload = {
-    githubToken: $('githubToken').value.trim(),
-    repoUrl: $('repoUrl').value.trim(),
-  };
-  showStatus('Teste Verbindung…');
-  try {
-    const { info } = await send('validateSettings', payload);
-    const branchInfo = `Branch: ${info.branch}${info.empty ? ' (Repo leer, wird beim Sync initialisiert)' : ''}`;
-    showStatus(`✓ Claude + GitHub OK — ${branchInfo}`, 'ok');
-  } catch (e) {
-    showStatus('✗ ' + e.message, 'err');
-  }
-}
-
-// ---------- Aktionen ----------
+// ---------- Actions ----------
 
 async function syncSelected() {
-  showStatus('Archiviere…');
+  showStatus('Archiving…');
   try {
     const { result } = await send('syncSelected');
     const attInfo = result.attachmentsUploaded > 0
-      ? `, ${result.attachmentsUploaded} Anhänge`
+      ? `, ${result.attachmentsUploaded} attachments`
       : '';
     showStatus(
-      `✓ ${result.created} neu, ${result.updated} aktualisiert, ${result.skipped} übersprungen${attInfo}`,
+      `✓ ${result.created} new, ${result.updated} updated, ${result.skipped} skipped${attInfo}`,
       'ok'
     );
     await loadActivity();
@@ -267,22 +189,15 @@ function clearSelection() {
   renderChats();
 }
 
-function escapeHtml(s) {
-  // Deprecated: no longer used after switch to DOM API. Kept as no-op.
-  return String(s);
-}
-
-// ---------- Consent-Handling ----------
+// ---------- Consent handling ----------
 
 async function checkConsent() {
   const { consentAccepted } = await chrome.storage.local.get(['consentAccepted']);
   if (consentAccepted) {
-    // Consent already given — show main UI
     $('consentScreen').classList.add('hidden');
     $('mainUI').classList.remove('hidden');
     return true;
   }
-  // First run — show consent screen, hide main UI
   $('consentScreen').classList.remove('hidden');
   $('mainUI').classList.add('hidden');
   return false;
@@ -295,23 +210,18 @@ async function acceptConsent() {
   });
   $('consentScreen').classList.add('hidden');
   $('mainUI').classList.remove('hidden');
-  // Now load chats and activity
   loadChats();
   loadActivity();
 }
 
 function declineConsent() {
-  // Close the popup — user declined
   window.close();
 }
 
 // ---------- Init ----------
 
 document.addEventListener('DOMContentLoaded', async () => {
-  $('settingsBtn').addEventListener('click', openSettings);
-  $('closeSettingsBtn').addEventListener('click', closeSettings);
-  $('saveSettingsBtn').addEventListener('click', saveSettings);
-  $('testBtn').addEventListener('click', testSettings);
+  $('settingsBtn').addEventListener('click', openOptions);
   $('reloadBtn').addEventListener('click', loadChats);
   $('syncBtn').addEventListener('click', syncSelected);
   $('selectAllBtn').addEventListener('click', selectAll);

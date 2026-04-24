@@ -77,7 +77,7 @@ function formatAttachments(msg) {
 function renderAttachmentIndex(attachments, skipped) {
   if (!attachments || attachments.length === 0) {
     if (skipped && skipped.length > 0) {
-      return `\n> ⚠️ ${skipped.length} Anhänge konnten nicht archiviert werden.\n`;
+      return `\n> ⚠️ ${skipped.length} attachments could not be archived.\n`;
     }
     return '';
   }
@@ -87,10 +87,10 @@ function renderAttachmentIndex(attachments, skipped) {
     (bySource[a.source] || bySource.user_upload).push(a);
   }
 
-  const lines = ['\n## 📎 Anhänge\n'];
+  const lines = ['\n## 📎 Attachments\n'];
 
   if (bySource.user_upload.length + bySource.user_upload_text.length > 0) {
-    lines.push('**User-Uploads:**');
+    lines.push('**User uploads:**');
     for (const a of [...bySource.user_upload, ...bySource.user_upload_text]) {
       lines.push(`- [\`${a.name}\`](${a.path})`);
     }
@@ -98,7 +98,7 @@ function renderAttachmentIndex(attachments, skipped) {
   }
 
   if (bySource.artifact.length > 0) {
-    lines.push('**Claude-Artefakte:**');
+    lines.push('**Claude artifacts:**');
     for (const a of bySource.artifact) {
       lines.push(`- [\`${a.name}\`](${a.path})`);
     }
@@ -106,7 +106,7 @@ function renderAttachmentIndex(attachments, skipped) {
   }
 
   if (bySource.tool_output.length > 0) {
-    lines.push('**Tool-Outputs:**');
+    lines.push('**Tool outputs:**');
     for (const a of bySource.tool_output) {
       lines.push(`- [\`${a.name}\`](${a.path})`);
     }
@@ -114,7 +114,7 @@ function renderAttachmentIndex(attachments, skipped) {
   }
 
   if (skipped && skipped.length > 0) {
-    lines.push('**Übersprungen:**');
+    lines.push('**Skipped:**');
     for (const s of skipped) {
       lines.push(`- \`${s.name}\` — ${s.reason}`);
     }
@@ -270,7 +270,7 @@ async function getConversation(orgId, convUuid) {
 async function checkAuth() {
   const orgs = await getOrganizations();
   if (!Array.isArray(orgs) || orgs.length === 0) {
-    throw new Error('Keine Organisation gefunden — bist du bei claude.ai eingeloggt?');
+    throw new Error('No organization found — are you logged in to claude.ai?');
   }
   return orgs;
 }
@@ -391,9 +391,9 @@ function encodePath(path) {
  */
 async function validateRepo(token, owner, repo) {
   const res = await fetch(`${GH_BASE}/repos/${owner}/${repo}`, { headers: authHeaders(token) });
-  if (res.status === 401) throw new Error('Token ungültig oder abgelaufen');
-  if (res.status === 404) throw new Error(`Repo ${owner}/${repo} nicht gefunden oder kein Zugriff`);
-  if (!res.ok) throw new Error(`GitHub-Fehler: ${res.status}`);
+  if (res.status === 401) throw new Error('Token invalid or expired');
+  if (res.status === 404) throw new Error(`Repository ${owner}/${repo} not found or not accessible`);
+  if (!res.ok) throw new Error(`GitHub error: ${res.status}`);
   return res.json();
 }
 
@@ -432,7 +432,7 @@ async function bootstrapRepo(token, owner, repo, branch = 'main') {
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(`Repo-Bootstrap fehlgeschlagen: ${res.status} ${err.message || ''}`);
+    throw new Error(`Repository bootstrap failed: ${res.status} ${err.message || ''}`);
   }
 }
 
@@ -440,7 +440,7 @@ function parseRepoUrl(input) {
   // Akzeptiert "owner/repo" oder "https://github.com/owner/repo(.git)"
   const s = (input || '').trim().replace(/\.git$/, '');
   const m = s.match(/(?:github\.com\/)?([^/\s]+)\/([^/\s]+)\/?$/);
-  if (!m) throw new Error('Ungültiges Repo-Format. Erwartet: owner/repo');
+  if (!m) throw new Error('Invalid repository format. Expected: owner/repo');
   return { owner: m[1], repo: m[2] };
 }
 
@@ -748,7 +748,7 @@ async function extractAllAttachments(conv, opts = {}) {
 
     // Placeholder: überspringen (nur Referenz, keine Datei)
     if (att.placeholder) {
-      skipped.push({ name: att.name, reason: 'nur Referenz, kein Inhalt verfügbar' });
+      skipped.push({ name: att.name, reason: 'reference only, content not available' });
       continue;
     }
 
@@ -760,7 +760,7 @@ async function extractAllAttachments(conv, opts = {}) {
         continue;
       }
       if (buf.byteLength > maxBytes) {
-        skipped.push({ name: att.name, reason: `zu groß (${(buf.byteLength / 1e6).toFixed(1)} MB)` });
+        skipped.push({ name: att.name, reason: `too large (${(buf.byteLength / 1e6).toFixed(1)} MB)` });
         continue;
       }
       att.content = buf;
@@ -775,7 +775,7 @@ async function extractAllAttachments(conv, opts = {}) {
 
     // Größen-Check für inline content
     if (typeof att.content === 'string' && att.content.length > maxBytes) {
-      skipped.push({ name: att.name, reason: `Text zu groß` });
+      skipped.push({ name: att.name, reason: `text too large` });
       continue;
     }
 
@@ -861,7 +861,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
   try {
     await runSync({ selectedOnly: true });
   } catch (e) {
-    await logActivity(`Auto-Sync Fehler: ${e.message}`, '❌');
+    await logActivity(`Auto-sync error: ${e.message}`, '❌');
   }
 });
 
@@ -936,7 +936,7 @@ async function runSync({ selectedOnly }) {
   // Safety check: Consent required before any data transmission
   const { consentAccepted } = await chrome.storage.local.get(['consentAccepted']);
   if (!consentAccepted) {
-    throw new Error('Zustimmung zur Datenübertragung fehlt — bitte Extension-Popup öffnen.');
+    throw new Error('Consent for data transmission is missing — please open the extension popup.');
   }
 
   const cfg = await chrome.storage.local.get([
@@ -951,7 +951,7 @@ async function runSync({ selectedOnly }) {
     'includeAttachments',
   ]);
 
-  if (!cfg.githubToken || !cfg.repoUrl) throw new Error('GitHub nicht konfiguriert');
+  if (!cfg.githubToken || !cfg.repoUrl) throw new Error('GitHub not configured');
 
   const { owner, repo } = GH.parseRepoUrl(cfg.repoUrl);
   const basePath = (cfg.chatsPath || 'chats').replace(/^\/|\/$/g, '');
@@ -962,7 +962,7 @@ async function runSync({ selectedOnly }) {
   // Falls Repo noch komplett leer ist → Initial-Commit
   const initialized = await GH.isRepoInitialized(cfg.githubToken, owner, repo, branch);
   if (!initialized) {
-    await logActivity('Repo ist leer — lege Initial-Commit an', 'ℹ️');
+    await logActivity('Repository is empty — creating initial commit', 'ℹ️');
     await GH.bootstrapRepo(cfg.githubToken, owner, repo, branch);
   }
 
@@ -982,7 +982,7 @@ async function runSync({ selectedOnly }) {
     : allConvs;
 
   if (targets.length === 0) {
-    await logActivity('Keine Chats zum Archivieren', 'ℹ️');
+    await logActivity('No chats to archive', 'ℹ️');
     return { created: 0, updated: 0, skipped: 0 };
   }
 
@@ -1061,16 +1061,16 @@ async function runSync({ selectedOnly }) {
       else updated++;
     } catch (e) {
       errors++;
-      await logActivity(`Fehler bei ${conv.name}: ${e.message}`, '⚠️');
+      await logActivity(`Error on ${conv.name}: ${e.message}`, '⚠️');
     }
   }
 
   await chrome.storage.local.set({ syncedHashes: hashes, lastSync: Date.now() });
   const attInfo = attachmentsUploaded > 0 || attachmentsSkipped > 0
-    ? `, ${attachmentsUploaded} Anhänge${attachmentsSkipped ? ` (${attachmentsSkipped} skipped)` : ''}`
+    ? `, ${attachmentsUploaded} attachments${attachmentsSkipped ? ` (${attachmentsSkipped} skipped)` : ''}`
     : '';
   await logActivity(
-    `Sync: +${created} neu, ~${updated} aktualisiert, ${skipped} übersprungen${attInfo}${errors ? `, ${errors} Fehler` : ''}`,
+    `Sync: +${created} new, ~${updated} updated, ${skipped} skipped${attInfo}${errors ? `, ${errors} errors` : ''}`,
     errors ? '⚠️' : '✅'
   );
 
@@ -1082,7 +1082,7 @@ async function logActivity(message, icon = '•') {
   activity.unshift({
     message,
     icon,
-    time: new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }),
+    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     ts: Date.now(),
   });
   await chrome.storage.local.set({ activity: activity.slice(0, 20) });

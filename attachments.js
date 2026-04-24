@@ -302,7 +302,7 @@ export async function extractAllAttachments(conv, opts = {}) {
 
     // Placeholder: überspringen (nur Referenz, keine Datei)
     if (att.placeholder) {
-      skipped.push({ name: att.name, reason: 'nur Referenz, kein Inhalt verfügbar' });
+      skipped.push({ name: att.name, reason: 'reference only, content not available' });
       continue;
     }
 
@@ -314,7 +314,7 @@ export async function extractAllAttachments(conv, opts = {}) {
         continue;
       }
       if (buf.byteLength > maxBytes) {
-        skipped.push({ name: att.name, reason: `zu groß (${(buf.byteLength / 1e6).toFixed(1)} MB)` });
+        skipped.push({ name: att.name, reason: `too large (${(buf.byteLength / 1e6).toFixed(1)} MB)` });
         continue;
       }
       att.content = buf;
@@ -329,7 +329,7 @@ export async function extractAllAttachments(conv, opts = {}) {
 
     // Größen-Check für inline content
     if (typeof att.content === 'string' && att.content.length > maxBytes) {
-      skipped.push({ name: att.name, reason: `Text zu groß` });
+      skipped.push({ name: att.name, reason: `text too large` });
       continue;
     }
 

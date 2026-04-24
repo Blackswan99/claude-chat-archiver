@@ -62,7 +62,7 @@ export async function getConversation(orgId, convUuid) {
 export async function checkAuth() {
   const orgs = await getOrganizations();
   if (!Array.isArray(orgs) || orgs.length === 0) {
-    throw new Error('Keine Organisation gefunden — bist du bei claude.ai eingeloggt?');
+    throw new Error('No organization found — are you logged in to claude.ai?');
   }
   return orgs;
 }

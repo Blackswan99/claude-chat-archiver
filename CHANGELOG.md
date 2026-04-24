@@ -4,6 +4,29 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [1.0.4] - 2026-04-24
+
+### Added
+- Dedicated options page (opens in a browser tab via the gear icon).
+  Settings are now entered on a full-size page that does not close when
+  focus leaves the browser — fixes the inability to paste tokens from
+  other tabs. The "Test connection" result is shown prominently on the
+  same page.
+
+### Changed
+- Complete English localization. All user-facing strings in the popup,
+  activity log, attachment index, and error messages are now in English.
+- Settings modal removed from the popup; the popup is now compact and
+  focused on chat selection and archiving.
+- Chat timestamps use the browser's default locale instead of `de-DE`.
+
+## [1.0.3] - 2026-04-24
+
+### Changed
+- Consent screen shortened and restyled for better readability in the
+  420 px popup. Removed nested blocks that caused the dialog to be
+  truncated on smaller screens.
+
 ## [1.0.2] - 2026-04-24
 
 ### Changed

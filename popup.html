@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <title>Claude Chat Archiver</title>
@@ -35,44 +35,24 @@
       cursor: pointer; font-size: 16px; padding: 4px 8px;
     }
     .icon-btn:hover { color: var(--text); }
-    main, #mainUI { padding: 12px 14px; }
+    #mainUI { padding: 12px 14px; }
 
     /* Consent Screen */
     .consent-screen {
-      position: fixed;
-      inset: 0;
-      background: var(--bg);
-      overflow-y: auto;
-      z-index: 100;
+      padding: 12px 14px;
     }
-    .consent-content {
-      padding: 16px 14px;
+    .consent-screen h2 {
+      margin: 0 0 8px; font-size: 15px; color: var(--text);
     }
-    .consent-content h2 {
-      margin: 0 0 8px; font-size: 16px; color: var(--text);
+    .consent-screen p {
+      color: var(--text); font-size: 12px; margin: 0 0 10px; line-height: 1.45;
     }
-    .consent-content > p {
-      color: var(--muted); font-size: 12px; margin: 0 0 12px;
+    .consent-screen p.muted {
+      color: var(--muted);
     }
-    .consent-block {
+    .consent-screen code {
       background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 10px 12px;
-      margin-bottom: 8px;
-    }
-    .consent-block strong {
-      display: block; font-size: 12px; margin-bottom: 4px;
-    }
-    .consent-block p {
-      margin: 0; font-size: 12px; color: var(--muted); line-height: 1.4;
-    }
-    .consent-block ul {
-      margin: 4px 0; padding-left: 18px; font-size: 12px; color: var(--muted);
-    }
-    .consent-block code {
-      background: var(--bg);
-      padding: 1px 4px;
+      padding: 1px 5px;
       border-radius: 3px;
       font-size: 11px;
     }
@@ -117,78 +97,32 @@
     }
     .status.ok { border-color: var(--ok); }
     .status.err { border-color: var(--err); }
-    .status.hidden { display: none; }
     .activity-item {
       display: flex; gap: 8px; padding: 4px 10px; font-size: 12px;
       border-bottom: 1px solid var(--border);
     }
     .activity-item:last-child { border-bottom: none; }
     .activity-time { color: var(--muted); margin-left: auto; font-size: 11px; }
-
-    /* Settings */
-    .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; }
-    .modal.hidden { display: none; }
-    .modal-content {
-      background: var(--panel); border: 1px solid var(--border); border-radius: 8px;
-      padding: 16px; width: 380px; max-height: 90vh; overflow-y: auto;
-    }
-    .modal-content h2 { margin: 0 0 12px; font-size: 14px; }
-    .field { margin-bottom: 10px; }
-    .field label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
-    .field input[type="text"], .field input[type="password"], .field input[type="number"] {
-      width: 100%; padding: 6px 8px; background: var(--bg); color: var(--text);
-      border: 1px solid var(--border); border-radius: 4px; font-family: inherit; font-size: 12px;
-    }
-    .field-check { display: flex; align-items: center; gap: 6px; }
-    .field-check input { accent-color: var(--accent); }
-    .modal-actions { display: flex; gap: 8px; margin-top: 12px; }
-    .hint { font-size: 11px; color: var(--muted); margin-top: 4px; }
   </style>
 </head>
 <body>
   <header>
     <h1>Claude Chat Archiver</h1>
     <div>
-      <button class="icon-btn" id="reloadBtn" title="Chats neu laden">↻</button>
-      <button class="icon-btn" id="settingsBtn" title="Einstellungen">⚙</button>
+      <button class="icon-btn" id="reloadBtn" title="Reload chats">↻</button>
+      <button class="icon-btn" id="settingsBtn" title="Open settings">⚙</button>
     </div>
   </header>
 
   <!-- Consent Screen (first run only) -->
   <div id="consentScreen" class="consent-screen hidden">
-    <div class="consent-content">
-      <h2>Welcome to Claude Chat Archiver</h2>
-      <p>Before you continue, please review what this extension does:</p>
-
-      <div class="consent-block">
-        <strong>📤 What data is transmitted?</strong>
-        <p>This extension reads your chat history from claude.ai and uploads the content (messages, attachments, Claude artifacts) to a GitHub repository that <strong>you configure and control</strong>.</p>
-      </div>
-
-      <div class="consent-block">
-        <strong>🔒 Where does your data go?</strong>
-        <p>Data is transmitted directly between:</p>
-        <ul>
-          <li>Your browser ↔ <code>claude.ai</code> (via your existing session cookie)</li>
-          <li>Your browser ↔ <code>api.github.com</code> (via your Personal Access Token)</li>
-        </ul>
-        <p>No data is sent to the extension author, third parties, analytics services, or any other destination.</p>
-      </div>
-
-      <div class="consent-block">
-        <strong>👤 You stay in control</strong>
-        <p>Nothing is uploaded automatically on first install. You explicitly select which chats to archive and click "Archive" to trigger the transfer. Auto-sync is off by default and must be enabled manually.</p>
-      </div>
-
-      <div class="consent-block">
-        <strong>🔑 Your credentials</strong>
-        <p>Your GitHub token is stored locally in your browser's extension storage. It never leaves your device except in the form of authenticated API requests to GitHub.</p>
-      </div>
-
-      <div class="consent-actions">
-        <button class="secondary" id="consentDeclineBtn">Decline & Close</button>
-        <button class="primary" id="consentAcceptBtn">I understand — Continue</button>
-      </div>
+    <h2>Welcome to Claude Chat Archiver</h2>
+    <p>This extension uploads your selected Claude.ai chats (messages and attachments) to a GitHub repository that you configure.</p>
+    <p class="muted">Data is transmitted directly between your browser, <code>claude.ai</code>, and <code>api.github.com</code> — never to any third party, analytics, or the extension author.</p>
+    <p class="muted">Nothing is uploaded automatically. You explicitly pick which chats to archive and trigger each sync yourself. Your GitHub token is stored locally in your browser.</p>
+    <div class="consent-actions">
+      <button class="secondary" id="consentDeclineBtn">Decline</button>
+      <button class="primary" id="consentAcceptBtn">I understand — Continue</button>
     </div>
   </div>
 
@@ -199,64 +133,22 @@
     <section>
       <h2>Chats (<span id="chatCount">0</span>)</h2>
       <div id="chatsList" class="list">
-        <div class="list-empty">Lade…</div>
+        <div class="list-empty">Loading…</div>
       </div>
     </section>
 
     <section class="actions">
-      <button class="secondary" id="selectAllBtn">Alle</button>
-      <button class="secondary" id="clearBtn">Auswahl löschen</button>
-      <button class="primary" id="syncBtn" disabled>📤 Archivieren</button>
+      <button class="secondary" id="selectAllBtn">Select all</button>
+      <button class="secondary" id="clearBtn">Clear</button>
+      <button class="primary" id="syncBtn" disabled>Archive</button>
     </section>
 
     <section>
-      <h2>Aktivität</h2>
+      <h2>Activity</h2>
       <div id="activity" class="list">
-        <div class="list-empty">Keine Aktivität</div>
+        <div class="list-empty">No activity yet</div>
       </div>
     </section>
-  </div>
-
-  <!-- Settings Modal -->
-  <div class="modal hidden" id="settingsModal">
-    <div class="modal-content">
-      <h2>Einstellungen</h2>
-      <div class="field">
-        <label>GitHub Personal Access Token</label>
-        <input type="password" id="githubToken" placeholder="ghp_... oder github_pat_..." />
-        <div class="hint">Scope: <code>repo</code> (Contents: Read/Write reicht bei Fine-grained)</div>
-      </div>
-      <div class="field">
-        <label>Repository (owner/repo)</label>
-        <input type="text" id="repoUrl" placeholder="username/claude-chats-archive" />
-      </div>
-      <div class="field">
-        <label>Zielordner im Repo</label>
-        <input type="text" id="chatsPath" placeholder="chats" />
-      </div>
-      <div class="field">
-        <label>Max. Attachment-Größe (MB)</label>
-        <input type="number" id="maxAttachmentMB" min="1" max="100" value="10" />
-        <div class="hint">Größere Dateien werden übersprungen (GitHub-Limit: 100 MB)</div>
-      </div>
-      <div class="field field-check">
-        <input type="checkbox" id="includeAttachments" checked />
-        <label for="includeAttachments">Anhänge mit archivieren (Uploads, Artefakte, Tool-Outputs)</label>
-      </div>
-      <div class="field">
-        <label>Auto-Sync Intervall (Minuten, min. 15)</label>
-        <input type="number" id="syncInterval" min="15" value="60" />
-      </div>
-      <div class="field field-check">
-        <input type="checkbox" id="autoArchive" />
-        <label for="autoArchive">Auto-Archive aktivieren (ausgewählte Chats)</label>
-      </div>
-      <div class="modal-actions">
-        <button class="secondary" id="testBtn">Testen</button>
-        <button class="secondary" id="closeSettingsBtn">Abbrechen</button>
-        <button class="primary" id="saveSettingsBtn">Speichern</button>
-      </div>
-    </div>
   </div>
 
   <script src="popup.js"></script>

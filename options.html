@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Claude Chat Archiver — Settings</title>
+  <style>
+    :root {
+      --bg: #0f1115;
+      --panel: #171a21;
+      --border: #2a2f3a;
+      --text: #e6e8ee;
+      --muted: #8a93a6;
+      --accent: #d97757;
+      --accent-hover: #c56641;
+      --ok: #4ade80;
+      --err: #f87171;
+    }
+    * { box-sizing: border-box; }
+    .hidden { display: none !important; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 14px;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+    .container {
+      max-width: 640px;
+      width: 100%;
+    }
+    header {
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    h1 { font-size: 20px; margin: 0 0 4px; font-weight: 600; }
+    header p { margin: 0; color: var(--muted); font-size: 13px; }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    .card h2 {
+      font-size: 14px;
+      margin: 0 0 16px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .field {
+      margin-bottom: 16px;
+    }
+    .field:last-child { margin-bottom: 0; }
+    .field label {
+      display: block;
+      font-size: 13px;
+      color: var(--text);
+      margin-bottom: 6px;
+      font-weight: 500;
+    }
+    .field input[type="text"],
+    .field input[type="password"],
+    .field input[type="number"] {
+      width: 100%;
+      padding: 8px 10px;
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: 13px;
+    }
+    .field input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    .field-check {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .field-check input {
+      accent-color: var(--accent);
+      width: 16px;
+      height: 16px;
+    }
+    .field-check label {
+      margin: 0;
+      cursor: pointer;
+    }
+    .hint {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+    .hint code {
+      background: var(--bg);
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-size: 11px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 8px;
+    }
+    button.primary {
+      padding: 10px 20px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    button.primary:hover:not(:disabled) { background: var(--accent-hover); }
+    button.primary:disabled { opacity: 0.4; cursor: not-allowed; }
+    button.secondary {
+      padding: 10px 20px;
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    button.secondary:hover { background: var(--panel); }
+
+    .status {
+      padding: 10px 14px;
+      border-radius: 6px;
+      margin-top: 16px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      font-size: 13px;
+    }
+    .status.ok { border-color: var(--ok); }
+    .status.err { border-color: var(--err); }
+    .status.hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Claude Chat Archiver — Settings</h1>
+      <p>Configure your GitHub destination and sync preferences.</p>
+    </header>
+
+    <div class="card">
+      <h2>GitHub Destination</h2>
+
+      <div class="field">
+        <label for="githubToken">Personal Access Token</label>
+        <input type="password" id="githubToken" placeholder="ghp_... or github_pat_..." autocomplete="off" />
+        <div class="hint">
+          Scope <code>repo</code> (Classic) or <code>Contents: Read and write</code> (Fine-grained).
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="repoUrl">Repository</label>
+        <input type="text" id="repoUrl" placeholder="username/repo" autocomplete="off" />
+        <div class="hint">
+          Format: <code>owner/repo</code>. The target repository must exist and be writable with the token above.
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="chatsPath">Target folder in repository</label>
+        <input type="text" id="chatsPath" placeholder="chats" autocomplete="off" />
+        <div class="hint">
+          Subfolder where chat files are stored. Default: <code>chats</code>.
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Sync Behavior</h2>
+
+      <div class="field">
+        <label for="syncInterval">Auto-sync interval (minutes)</label>
+        <input type="number" id="syncInterval" min="15" value="60" />
+        <div class="hint">
+          Minimum 15 minutes. Only used when auto-archive is enabled.
+        </div>
+      </div>
+
+      <div class="field field-check">
+        <input type="checkbox" id="autoArchive" />
+        <label for="autoArchive">Enable auto-archive for selected chats</label>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Attachments</h2>
+
+      <div class="field">
+        <label for="maxAttachmentMB">Maximum attachment size (MB)</label>
+        <input type="number" id="maxAttachmentMB" min="1" max="100" value="10" />
+        <div class="hint">
+          Larger files are skipped. GitHub limit per file is 100 MB.
+        </div>
+      </div>
+
+      <div class="field field-check">
+        <input type="checkbox" id="includeAttachments" checked />
+        <label for="includeAttachments">Archive attachments (uploads, artifacts, tool outputs)</label>
+      </div>
+    </div>
+
+    <div id="status" class="status hidden"></div>
+
+    <div class="actions">
+      <button class="secondary" id="testBtn">Test connection</button>
+      <button class="primary" id="saveBtn">Save</button>
+    </div>
+  </div>
+
+  <script src="options.js"></script>
+</body>
+</html>

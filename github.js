@@ -88,9 +88,9 @@ function encodePath(path) {
  */
 export async function validateRepo(token, owner, repo) {
   const res = await fetch(`${GH_BASE}/repos/${owner}/${repo}`, { headers: authHeaders(token) });
-  if (res.status === 401) throw new Error('Token ungültig oder abgelaufen');
-  if (res.status === 404) throw new Error(`Repo ${owner}/${repo} nicht gefunden oder kein Zugriff`);
-  if (!res.ok) throw new Error(`GitHub-Fehler: ${res.status}`);
+  if (res.status === 401) throw new Error('Token invalid or expired');
+  if (res.status === 404) throw new Error(`Repository ${owner}/${repo} not found or not accessible`);
+  if (!res.ok) throw new Error(`GitHub error: ${res.status}`);
   return res.json();
 }
 
@@ -129,7 +129,7 @@ export async function bootstrapRepo(token, owner, repo, branch = 'main') {
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(`Repo-Bootstrap fehlgeschlagen: ${res.status} ${err.message || ''}`);
+    throw new Error(`Repository bootstrap failed: ${res.status} ${err.message || ''}`);
   }
 }
 
@@ -137,6 +137,6 @@ export function parseRepoUrl(input) {
   // Akzeptiert "owner/repo" oder "https://github.com/owner/repo(.git)"
   const s = (input || '').trim().replace(/\.git$/, '');
   const m = s.match(/(?:github\.com\/)?([^/\s]+)\/([^/\s]+)\/?$/);
-  if (!m) throw new Error('Ungültiges Repo-Format. Erwartet: owner/repo');
+  if (!m) throw new Error('Invalid repository format. Expected: owner/repo');
   return { owner: m[1], repo: m[2] };
 }

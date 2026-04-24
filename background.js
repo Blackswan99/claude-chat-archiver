@@ -67,7 +67,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
   try {
     await runSync({ selectedOnly: true });
   } catch (e) {
-    await logActivity(`Auto-Sync Fehler: ${e.message}`, '❌');
+    await logActivity(`Auto-sync error: ${e.message}`, '❌');
   }
 });
 
@@ -142,7 +142,7 @@ async function runSync({ selectedOnly }) {
   // Safety check: Consent required before any data transmission
   const { consentAccepted } = await chrome.storage.local.get(['consentAccepted']);
   if (!consentAccepted) {
-    throw new Error('Zustimmung zur Datenübertragung fehlt — bitte Extension-Popup öffnen.');
+    throw new Error('Consent for data transmission is missing — please open the extension popup.');
   }
 
   const cfg = await chrome.storage.local.get([
@@ -157,7 +157,7 @@ async function runSync({ selectedOnly }) {
     'includeAttachments',
   ]);
 
-  if (!cfg.githubToken || !cfg.repoUrl) throw new Error('GitHub nicht konfiguriert');
+  if (!cfg.githubToken || !cfg.repoUrl) throw new Error('GitHub not configured');
 
   const { owner, repo } = GH.parseRepoUrl(cfg.repoUrl);
   const basePath = (cfg.chatsPath || 'chats').replace(/^\/|\/$/g, '');
@@ -168,7 +168,7 @@ async function runSync({ selectedOnly }) {
   // Falls Repo noch komplett leer ist → Initial-Commit
   const initialized = await GH.isRepoInitialized(cfg.githubToken, owner, repo, branch);
   if (!initialized) {
-    await logActivity('Repo ist leer — lege Initial-Commit an', 'ℹ️');
+    await logActivity('Repository is empty — creating initial commit', 'ℹ️');
     await GH.bootstrapRepo(cfg.githubToken, owner, repo, branch);
   }
 
@@ -188,7 +188,7 @@ async function runSync({ selectedOnly }) {
     : allConvs;
 
   if (targets.length === 0) {
-    await logActivity('Keine Chats zum Archivieren', 'ℹ️');
+    await logActivity('No chats to archive', 'ℹ️');
     return { created: 0, updated: 0, skipped: 0 };
   }
 
@@ -267,16 +267,16 @@ async function runSync({ selectedOnly }) {
       else updated++;
     } catch (e) {
       errors++;
-      await logActivity(`Fehler bei ${conv.name}: ${e.message}`, '⚠️');
+      await logActivity(`Error on ${conv.name}: ${e.message}`, '⚠️');
     }
   }
 
   await chrome.storage.local.set({ syncedHashes: hashes, lastSync: Date.now() });
   const attInfo = attachmentsUploaded > 0 || attachmentsSkipped > 0
-    ? `, ${attachmentsUploaded} Anhänge${attachmentsSkipped ? ` (${attachmentsSkipped} skipped)` : ''}`
+    ? `, ${attachmentsUploaded} attachments${attachmentsSkipped ? ` (${attachmentsSkipped} skipped)` : ''}`
     : '';
   await logActivity(
-    `Sync: +${created} neu, ~${updated} aktualisiert, ${skipped} übersprungen${attInfo}${errors ? `, ${errors} Fehler` : ''}`,
+    `Sync: +${created} new, ~${updated} updated, ${skipped} skipped${attInfo}${errors ? `, ${errors} errors` : ''}`,
     errors ? '⚠️' : '✅'
   );
 
@@ -288,7 +288,7 @@ async function logActivity(message, icon = '•') {
   activity.unshift({
     message,
     icon,
-    time: new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }),
+    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     ts: Date.now(),
   });
   await chrome.storage.local.set({ activity: activity.slice(0, 20) });
