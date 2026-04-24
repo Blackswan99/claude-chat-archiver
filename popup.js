@@ -45,10 +45,28 @@ function showStatus(msg, kind = '') {
 }
 function hideStatus() { $('status').className = 'status hidden'; }
 
+// ---------- DOM-Helper ----------
+
+function clearChildren(el) {
+  while (el.firstChild) el.removeChild(el.firstChild);
+}
+
+function makeEl(tag, className, textContent) {
+  const el = document.createElement(tag);
+  if (className) el.className = className;
+  if (textContent != null) el.textContent = textContent;
+  return el;
+}
+
+function setEmptyState(el, text) {
+  clearChildren(el);
+  el.appendChild(makeEl('div', 'list-empty', text));
+}
+
 // ---------- Laden ----------
 
 async function loadChats() {
-  $('chatsList').innerHTML = '<div class="list-empty">Lade…</div>';
+  setEmptyState($('chatsList'), 'Lade…');
   try {
     const { chats } = await send('loadChats');
     state.chats = chats;
@@ -57,7 +75,7 @@ async function loadChats() {
     state.selected = new Set(selectedChats.filter((uuid) => chats.some((c) => c.uuid === uuid)));
     renderChats();
   } catch (e) {
-    $('chatsList').innerHTML = `<div class="list-empty">${e.message}</div>`;
+    setEmptyState($('chatsList'), e.message);
     if (e.message.includes('401') || e.message.includes('eingeloggt')) {
       showStatus('Bitte bei claude.ai einloggen', 'err');
     }
@@ -67,19 +85,18 @@ async function loadChats() {
 async function loadActivity() {
   const { activity = [] } = await chrome.storage.local.get(['activity']);
   const el = $('activity');
+  clearChildren(el);
   if (activity.length === 0) {
-    el.innerHTML = '<div class="list-empty">Keine Aktivität</div>';
+    el.appendChild(makeEl('div', 'list-empty', 'Keine Aktivität'));
     return;
   }
-  el.innerHTML = activity
-    .map((a) => `
-      <div class="activity-item">
-        <span>${a.icon}</span>
-        <span>${escapeHtml(a.message)}</span>
-        <span class="activity-time">${a.time}</span>
-      </div>
-    `)
-    .join('');
+  for (const a of activity) {
+    const item = makeEl('div', 'activity-item');
+    item.appendChild(makeEl('span', null, a.icon));
+    item.appendChild(makeEl('span', null, a.message));
+    item.appendChild(makeEl('span', 'activity-time', a.time));
+    el.appendChild(item);
+  }
 }
 
 // ---------- Rendering ----------
@@ -87,35 +104,36 @@ async function loadActivity() {
 function renderChats() {
   $('chatCount').textContent = state.chats.length;
   const el = $('chatsList');
+  clearChildren(el);
   if (state.chats.length === 0) {
-    el.innerHTML = '<div class="list-empty">Keine Chats gefunden</div>';
+    el.appendChild(makeEl('div', 'list-empty', 'Keine Chats gefunden'));
     updateButtons();
     return;
   }
-  el.innerHTML = state.chats
-    .map((c) => {
-      const checked = state.selected.has(c.uuid) ? 'checked' : '';
-      const date = c.updated_at ? new Date(c.updated_at).toLocaleDateString('de-DE') : '';
-      return `
-        <div class="chat-item">
-          <input type="checkbox" data-uuid="${c.uuid}" ${checked} />
-          <div class="chat-item-body">
-            <span class="chat-item-title">${escapeHtml(c.name)}</span>
-            <span class="chat-item-meta">${date}</span>
-          </div>
-        </div>
-      `;
-    })
-    .join('');
-  el.querySelectorAll('input[type="checkbox"]').forEach((cb) => {
+  for (const c of state.chats) {
+    const date = c.updated_at ? new Date(c.updated_at).toLocaleDateString('de-DE') : '';
+
+    const item = makeEl('div', 'chat-item');
+
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.dataset.uuid = c.uuid;
+    cb.checked = state.selected.has(c.uuid);
     cb.addEventListener('change', async () => {
-      const uuid = cb.dataset.uuid;
-      if (cb.checked) state.selected.add(uuid);
-      else state.selected.delete(uuid);
+      if (cb.checked) state.selected.add(c.uuid);
+      else state.selected.delete(c.uuid);
       await chrome.storage.local.set({ selectedChats: [...state.selected] });
       updateButtons();
     });
-  });
+
+    const body = makeEl('div', 'chat-item-body');
+    body.appendChild(makeEl('span', 'chat-item-title', c.name));
+    body.appendChild(makeEl('span', 'chat-item-meta', date));
+
+    item.appendChild(cb);
+    item.appendChild(body);
+    el.appendChild(item);
+  }
   updateButtons();
 }
 
@@ -250,14 +268,46 @@ function clearSelection() {
 }
 
 function escapeHtml(s) {
-  const d = document.createElement('div');
-  d.textContent = s;
-  return d.innerHTML;
+  // Deprecated: no longer used after switch to DOM API. Kept as no-op.
+  return String(s);
+}
+
+// ---------- Consent-Handling ----------
+
+async function checkConsent() {
+  const { consentAccepted } = await chrome.storage.local.get(['consentAccepted']);
+  if (consentAccepted) {
+    // Consent already given — show main UI
+    $('consentScreen').classList.add('hidden');
+    $('mainUI').classList.remove('hidden');
+    return true;
+  }
+  // First run — show consent screen, hide main UI
+  $('consentScreen').classList.remove('hidden');
+  $('mainUI').classList.add('hidden');
+  return false;
+}
+
+async function acceptConsent() {
+  await chrome.storage.local.set({
+    consentAccepted: true,
+    consentAcceptedAt: new Date().toISOString(),
+  });
+  $('consentScreen').classList.add('hidden');
+  $('mainUI').classList.remove('hidden');
+  // Now load chats and activity
+  loadChats();
+  loadActivity();
+}
+
+function declineConsent() {
+  // Close the popup — user declined
+  window.close();
 }
 
 // ---------- Init ----------
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   $('settingsBtn').addEventListener('click', openSettings);
   $('closeSettingsBtn').addEventListener('click', closeSettings);
   $('saveSettingsBtn').addEventListener('click', saveSettings);
@@ -266,7 +316,12 @@ document.addEventListener('DOMContentLoaded', () => {
   $('syncBtn').addEventListener('click', syncSelected);
   $('selectAllBtn').addEventListener('click', selectAll);
   $('clearBtn').addEventListener('click', clearSelection);
+  $('consentAcceptBtn').addEventListener('click', acceptConsent);
+  $('consentDeclineBtn').addEventListener('click', declineConsent);
 
-  loadChats();
-  loadActivity();
+  const hasConsent = await checkConsent();
+  if (hasConsent) {
+    loadChats();
+    loadActivity();
+  }
 });

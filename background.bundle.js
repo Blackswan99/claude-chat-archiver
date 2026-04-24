@@ -933,6 +933,12 @@ async function saveSettingsInWorker(payload) {
 }
 
 async function runSync({ selectedOnly }) {
+  // Safety check: Consent required before any data transmission
+  const { consentAccepted } = await chrome.storage.local.get(['consentAccepted']);
+  if (!consentAccepted) {
+    throw new Error('Zustimmung zur Datenübertragung fehlt — bitte Extension-Popup öffnen.');
+  }
+
   const cfg = await chrome.storage.local.get([
     'githubToken',
     'repoUrl',

@@ -16,6 +16,7 @@
       --err: #f87171;
     }
     * { box-sizing: border-box; }
+    .hidden { display: none !important; }
     body {
       width: 420px;
       margin: 0;
@@ -34,7 +35,52 @@
       cursor: pointer; font-size: 16px; padding: 4px 8px;
     }
     .icon-btn:hover { color: var(--text); }
-    main { padding: 12px 14px; }
+    main, #mainUI { padding: 12px 14px; }
+
+    /* Consent Screen */
+    .consent-screen {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      overflow-y: auto;
+      z-index: 100;
+    }
+    .consent-content {
+      padding: 16px 14px;
+    }
+    .consent-content h2 {
+      margin: 0 0 8px; font-size: 16px; color: var(--text);
+    }
+    .consent-content > p {
+      color: var(--muted); font-size: 12px; margin: 0 0 12px;
+    }
+    .consent-block {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+    }
+    .consent-block strong {
+      display: block; font-size: 12px; margin-bottom: 4px;
+    }
+    .consent-block p {
+      margin: 0; font-size: 12px; color: var(--muted); line-height: 1.4;
+    }
+    .consent-block ul {
+      margin: 4px 0; padding-left: 18px; font-size: 12px; color: var(--muted);
+    }
+    .consent-block code {
+      background: var(--bg);
+      padding: 1px 4px;
+      border-radius: 3px;
+      font-size: 11px;
+    }
+    .consent-actions {
+      display: flex; gap: 8px; margin-top: 12px;
+    }
+    .consent-actions button { flex: 1; }
+
     section { margin-bottom: 14px; }
     section h2 {
       font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em;
@@ -108,7 +154,46 @@
     </div>
   </header>
 
-  <main>
+  <!-- Consent Screen (first run only) -->
+  <div id="consentScreen" class="consent-screen hidden">
+    <div class="consent-content">
+      <h2>Welcome to Claude Chat Archiver</h2>
+      <p>Before you continue, please review what this extension does:</p>
+
+      <div class="consent-block">
+        <strong>📤 What data is transmitted?</strong>
+        <p>This extension reads your chat history from claude.ai and uploads the content (messages, attachments, Claude artifacts) to a GitHub repository that <strong>you configure and control</strong>.</p>
+      </div>
+
+      <div class="consent-block">
+        <strong>🔒 Where does your data go?</strong>
+        <p>Data is transmitted directly between:</p>
+        <ul>
+          <li>Your browser ↔ <code>claude.ai</code> (via your existing session cookie)</li>
+          <li>Your browser ↔ <code>api.github.com</code> (via your Personal Access Token)</li>
+        </ul>
+        <p>No data is sent to the extension author, third parties, analytics services, or any other destination.</p>
+      </div>
+
+      <div class="consent-block">
+        <strong>👤 You stay in control</strong>
+        <p>Nothing is uploaded automatically on first install. You explicitly select which chats to archive and click "Archive" to trigger the transfer. Auto-sync is off by default and must be enabled manually.</p>
+      </div>
+
+      <div class="consent-block">
+        <strong>🔑 Your credentials</strong>
+        <p>Your GitHub token is stored locally in your browser's extension storage. It never leaves your device except in the form of authenticated API requests to GitHub.</p>
+      </div>
+
+      <div class="consent-actions">
+        <button class="secondary" id="consentDeclineBtn">Decline & Close</button>
+        <button class="primary" id="consentAcceptBtn">I understand — Continue</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main UI -->
+  <div id="mainUI" class="hidden">
     <div id="status" class="status hidden"></div>
 
     <section>
@@ -130,7 +215,7 @@
         <div class="list-empty">Keine Aktivität</div>
       </div>
     </section>
-  </main>
+  </div>
 
   <!-- Settings Modal -->
   <div class="modal hidden" id="settingsModal">

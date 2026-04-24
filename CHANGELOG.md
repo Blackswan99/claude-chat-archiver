@@ -1,46 +1,64 @@
 # Changelog
 
-Alle wesentlichen Änderungen werden hier dokumentiert. Das Format folgt
-[Keep a Changelog](https://keepachangelog.com/de/1.1.0/), die Versionierung
-[Semantic Versioning](https://semver.org/lang/de/).
+All notable changes to this project are documented here. The format is based on
+[Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to
+[Semantic Versioning](https://semver.org/).
 
-## [2.1.2] - 2026-04-23
+## [1.0.1] - 2026-04-23
 
 ### Fixed
-- Firefox: Background-Worker konnte ES-Modul-Imports nicht zuverlässig auflösen.
-  Alle Module werden nun zu `background.bundle.js` vorgebaut (`build-bundle.sh`).
-- Settings-Persistenz: Writes laufen direkt im Popup-Kontext mit sofortiger
-  Verifikation durch Re-Read — unabhängig vom Background-Worker-Lifecycle.
+- Consent screen stayed visible after clicking "I understand — Continue".
+  The accept flag was correctly persisted, but the `.hidden` CSS class was
+  not globally defined, so the UI didn't update. Added a global
+  `.hidden { display: none !important; }` rule.
 
-## [2.1.0] - 2026-04-23
+## [1.0.0] - 2026-04-23
 
 ### Added
-- Vollständige Attachment-Archivierung: User-Uploads, Claude-Artefakte,
-  Tool-Outputs
-- Neue Ordnerstruktur: jeder Chat erhält eigenes Verzeichnis mit
-  `chat.md` + `attachments/`-Unterordner
-- Attachment-Index am Anfang jeder `chat.md` mit klickbaren GitHub-Links
-- Settings: Max-Attachment-Größe (MB), Anhänge optional deaktivierbar
-
-## [2.0.2] - 2026-04-22
-
-### Fixed
-- Default-Branch-Detection (`main` vs. `master`) statt Hardcoding
-- Leere Repos werden automatisch mit Initial-Commit bootstrapped
-- Korrektes URL-Encoding für Pfade mit Unterordnern
-
-## [2.0.0] - 2026-04-22
+- First-run consent screen informing users about data transmission to the
+  configured GitHub repository, with explicit Accept/Decline. Consent is
+  required before any sync operation.
+- `data_collection_permissions` declaration in the manifest (required for
+  Firefox 140+ AMO submissions).
 
 ### Changed
-- Komplettes Rewrite: Keine DOM-Scraping mehr, Nutzung der internen
-  Claude.ai-JSON-API über Session-Cookie
+- Switched popup rendering from `innerHTML` template strings to DOM API
+  (`createElement` / `textContent`) for improved safety and AMO compliance.
+- Removed unsupported `service_worker` manifest key; Firefox uses the
+  `scripts` key exclusively.
+
+### Fixed
+- Firefox: background worker could not reliably resolve ES module imports.
+  All modules are now pre-built into `background.bundle.js` via
+  `build-bundle.sh`.
+- Settings persistence: writes happen directly in the popup context with
+  immediate verification via re-read.
+
+## [0.3.0] - 2026-04-23
 
 ### Added
-- Inkrementeller Sync: unveränderte Chats per `updated_at` + SHA-256-Hash
-  übersprungen
-- UTF-8-sicheres Base64-Encoding für GitHub-Uploads
-- Markdown-Output mit Frontmatter, korrekter Tool-Use/Tool-Result-Darstellung
-- SHA-Handling für Updates existierender Dateien
+- Full attachment archiving: user uploads, Claude artifacts, and tool outputs
+- New folder structure: each chat gets its own directory containing
+  `chat.md` plus an `attachments/` subfolder
+- Attachment index at the top of every `chat.md` with clickable GitHub links
+
+## [0.2.0] - 2026-04-22
+
+### Fixed
+- Default branch detection (`main` vs. `master`) instead of hardcoding
+- Empty repositories are automatically bootstrapped with an initial commit
+
+## [0.1.0] - 2026-04-22
+
+### Changed
+- Complete rewrite: no more DOM scraping — uses the internal Claude.ai JSON API
+  authenticated via session cookie
+
+### Added
+- Incremental sync via `updated_at` + SHA-256 hash
+- UTF-8-safe Base64 encoding for GitHub uploads
+- Markdown output with frontmatter
+- SHA handling for updating existing files
 
 ### Removed
-- Content-Script (DOM-Extraktion nicht mehr nötig)
+- Content script (DOM extraction no longer needed)
